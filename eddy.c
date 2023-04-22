@@ -1,3 +1,13 @@
+/**
+ * @file eddy.c
+ * @author Rafał Kędzierski (rafal.kedzierski@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2023-04-22
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #include "eddy.h"
 #include "eddy_config.h"
 
@@ -5,9 +15,11 @@
 #include <stdio.h>
 #include <ctype.h>
 
-#define EDDY_NULL 0
 
-//Escape character code
+#define EDDY_NULL 0
+/**
+ * @{ \name Escape character codes
+ */
 #define VT100_BS_CODE  0x08
 #define VT100_ESC_CODE 0x1B
 #define VT100_DEL_CODE 0x7F
@@ -48,36 +60,61 @@
 #define VT100_F10                 VT100_ESC "[21~"
 #define VT100_F11                 VT100_ESC "[23~"
 #define VT100_F12                 VT100_ESC "[24~"
+/**
+ * @}
+ */
 
-#define EDDY_MAX_ESC_SEQ_LEN		7
-#define EDDY_MAX_PROMPT_LEN			8
+/**
+ * @{ \name Definitions of internal beffer lenghts.
+ */
+#define EDDY_MAX_ESC_SEQ_LEN		7	/**< Lenght of escape sequence buffer. */
+#define EDDY_MAX_PROMPT_LEN			8	/**< Lenght of prompt buffer. */
+/**
+ * @}
+ */
 
+/**
+ * @brief Structure contain del and backspace codes
+ * 
+ */
 typedef struct eddy_keys_codes_s {
-	char bs_key;
-	char del_key;
+	char bs_key;		/**< Back space key code. */
+	char del_key;		/**< Delete key code. */
 } eddy_keys_codes_t;
 
+/**
+ * @brief Private internal context of library
+ * 
+ */
 typedef struct eddy_ctx_s {
-	char line_buffer[EDDY_MAX_LINE_BUFF_LEN];
-	unsigned int line_len;
-	unsigned int line_pos;
-	char esc_seq[EDDY_MAX_ESC_SEQ_LEN+1];
-	unsigned int esc_seq_len;
-	char prompt[EDDY_MAX_PROMPT_LEN];
-	eddy_keys_codes_t keys_codes;
+	char line_buffer[EDDY_MAX_LINE_BUFF_LEN];	/**< Edited line buffer. */
+	unsigned int line_len;						/**< Number of entered characters. */
+	unsigned int line_pos;						/**< Cursor position in buffer. */
+	char esc_seq[EDDY_MAX_ESC_SEQ_LEN+1];		/**< Buffer on escape sequence. */
+	unsigned int esc_seq_len;					/**< Number of characters in escape sequence buffer. */
+	char prompt[EDDY_MAX_PROMPT_LEN];			/**< Buffer with prompt. */
+	eddy_keys_codes_t keys_codes;				/**< Structure with back space and delete codes. */
 
-	eddy_cli_print_clbk cli_print_clbk;
-	eddy_log_print_clbk log_print_clbk;
-	eddy_check_hint_clbk check_hint_clbk;
-	eddy_exec_cmd_clbk exec_cmd_clbk;
+	eddy_cli_print_clbk cli_print_clbk;			/**< Pointer on terminal printing function. */
+	eddy_log_print_clbk log_print_clbk;			/**< Pointer on logs printing function. */
+	eddy_check_hint_clbk check_hint_clbk;		/**< Pointer on check and print hints function. */
+	eddy_exec_cmd_clbk exec_cmd_clbk;			/**< Pointer on command execution function */
 } eddy_ctx_t;
 
+/**
+ * @{ \name API implementation functions.
+*/
 eddy_retv_t eddy_put_char_impl(eddy_p self, char c);
 eddy_retv_t eddy_set_cli_print_impl(eddy_p self, eddy_cli_print_clbk cli_print_clbk);
 eddy_retv_t eddy_set_log_print_impl(eddy_p self, eddy_log_print_clbk log_print_clbk);
 eddy_retv_t eddy_set_check_hint_impl(eddy_p self, eddy_check_hint_clbk check_hint_clbk);
 eddy_retv_t eddy_set_exec_cmd_impl(eddy_p self, eddy_exec_cmd_clbk exec_cmd_clbk);
-
+/**
+ * @}
+ */
+/**
+ * @{ \name Private functions declarations.
+ */
 eddy_retv_t eddy_proces_insert_char(eddy_p self, char c);
 eddy_retv_t eddy_process_cursor_left(eddy_p self);
 eddy_retv_t eddy_process_cursor_right(eddy_p self);
@@ -85,8 +122,11 @@ eddy_retv_t eddy_process_check_hint(eddy_p self, char* cmd_line);
 eddy_retv_t eddy_process_exec_cmd(eddy_p self, const char* cmd_line);
 eddy_retv_t eddy_process_bs_key(eddy_p self);
 eddy_retv_t eddy_process_del_key(eddy_p self);
-eddy_retv_t eddy_write(eddy_p self, const char* buffer);
+eddy_retv_t eddy_print(eddy_p self, const char* buffer);
 eddy_retv_t eddy_put(eddy_p self, char chr);
+/**
+ * @}
+ */
 
 eddy_retv_t init_eddy(eddy_p self)
 {
@@ -106,7 +146,7 @@ eddy_retv_t init_eddy(eddy_p self)
 	self->set_check_hint_clbk = eddy_set_check_hint_impl;
 	self->set_exec_cmd_clbk = eddy_set_exec_cmd_impl;
 
-	self->ctx->keys_codes.bs_key = VT100_DEL_CODE; //VT100_BS_CODE;
+	self->ctx->keys_codes.bs_key = VT100_DEL_CODE; /* VT100_BS_CODE; */
 	self->ctx->keys_codes.del_key = VT100_BS_CODE;
 
 	self->ctx->line_len = 0;
@@ -114,11 +154,20 @@ eddy_retv_t init_eddy(eddy_p self)
 	self->ctx->esc_seq_len = 0;
 
 	sprintf(self->ctx->prompt, ">");
-	eddy_write(self, self->ctx->prompt);
+	eddy_print(self, self->ctx->prompt);
 
 	return EDDY_RETV_OK;
 }
 
+/**
+ * @brief Implementation of api set_cli_print_clbk function.
+ * 
+ * Function to set callback on terminal printing function.
+ * 
+ * @param self Pointer on library context.
+ * @param cli_print_clbk Pointer to print function.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_set_cli_print_impl(eddy_p self, eddy_cli_print_clbk cli_print_clbk)
 {
 	if(self == EDDY_NULL || cli_print_clbk == EDDY_NULL) {
@@ -130,6 +179,13 @@ eddy_retv_t eddy_set_cli_print_impl(eddy_p self, eddy_cli_print_clbk cli_print_c
 	return EDDY_RETV_OK;
 }
 
+/**
+ * @brief Implementation of api set_log_print_clbk function.
+ * 
+ * @param self Pointer on library context.
+ * @param log_print_clbk Pointer to print function.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_set_log_print_impl(eddy_p self, eddy_log_print_clbk log_print_clbk)
 {
 	if(self == EDDY_NULL || log_print_clbk == EDDY_NULL) {
@@ -141,6 +197,13 @@ eddy_retv_t eddy_set_log_print_impl(eddy_p self, eddy_log_print_clbk log_print_c
 	return EDDY_RETV_OK;
 }
 
+/**
+ * @brief Implementation of api set_check_hint_clbk function.
+ * 
+ * @param self Pointer on library context.
+ * @param check_hint_clbk Pointer to check and print hint function.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_set_check_hint_impl(eddy_p self, eddy_check_hint_clbk check_hint_clbk)
 {
 	if(self == EDDY_NULL || check_hint_clbk == EDDY_NULL) {
@@ -152,6 +215,13 @@ eddy_retv_t eddy_set_check_hint_impl(eddy_p self, eddy_check_hint_clbk check_hin
 	return EDDY_RETV_OK;
 }
 
+/**
+ * @brief Implementation of api set_exec_cmd_clbk function.
+ * 
+ * @param self Pointer on library context.
+ * @param exec_cmd_clbk Pointer to execute command function.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_set_exec_cmd_impl(eddy_p self, eddy_exec_cmd_clbk exec_cmd_clbk)
 {
 	if(self == EDDY_NULL || exec_cmd_clbk == EDDY_NULL) {
@@ -163,6 +233,13 @@ eddy_retv_t eddy_set_exec_cmd_impl(eddy_p self, eddy_exec_cmd_clbk exec_cmd_clbk
 	return EDDY_RETV_OK;
 }
 
+/**
+ * @brief Implementation of api put_char function.
+ * 
+ * @param self Pointer on library context.
+ * @param c Character passed from terminal.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_put_char_impl(eddy_p self, char c)
 {
 	eddy_retv_t error = EDDY_RETV_OK;
@@ -195,7 +272,7 @@ eddy_retv_t eddy_put_char_impl(eddy_p self, char c)
 			} else {
 			//Unknown escape sequence
 				printf("DEBUG: unknown esc seq: %s\n", self->ctx->esc_seq + 1);
-				eddy_write(self, self->ctx->esc_seq);
+				eddy_print(self, self->ctx->esc_seq);
 			}
 			self->ctx->esc_seq_len = 0;
 		}
@@ -213,10 +290,16 @@ eddy_retv_t eddy_put_char_impl(eddy_p self, char c)
 	return error;
 }
 
+/**
+ * @brief Insert char into line buffer.
+ * 
+ * @param self Pointer on library context.
+ * @param c Character to insertion.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_proces_insert_char(eddy_p self, char c)
 {
 	eddy_retv_t error = EDDY_RETV_OK;
-	//unsigned int cursorPos;
 
 	if(self->ctx->line_len < (EDDY_MAX_LINE_BUFF_LEN - 1)) {
 		if(self->ctx->line_pos < self->ctx->line_len) {
@@ -232,24 +315,19 @@ eddy_retv_t eddy_proces_insert_char(eddy_p self, char c)
 
 		error = eddy_put(self, c);
 
-		//if((cursorPos % session->termWidth) == 0)
-		//{
-		//   osStrcat(buffer, "\r\n");
-		//}
-
 		if(self->ctx->line_pos < self->ctx->line_len) {
 			if(!error) {
-				eddy_write(self, VT100_SAVE_CURSOR_POS);
+				eddy_print(self, VT100_SAVE_CURSOR_POS);
 			}
 		}
 
 		if(self->ctx->line_pos < self->ctx->line_len) {
 			if(!error) {
-				error = eddy_write(self, self->ctx->line_buffer + self->ctx->line_pos);
+				error = eddy_print(self, self->ctx->line_buffer + self->ctx->line_pos);
 			}
 
 			if(!error) {
-				error = eddy_write(self, VT100_RESTORE_CURSOR_POS);
+				error = eddy_print(self, VT100_RESTORE_CURSOR_POS);
 			}
 		}
 	}
@@ -257,29 +335,35 @@ eddy_retv_t eddy_proces_insert_char(eddy_p self, char c)
 	return error;
 }
 
+/**
+ * @brief Proceed back space on line buffer.
+ * 
+ * @param self Pointer on library context.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_process_bs_key(eddy_p self)
 {
 	eddy_retv_t error;
 
 	if(self->ctx->line_pos > 0) {
-		error = eddy_write(self, VT100_BACKSPACE);
+		error = eddy_print(self, VT100_BACKSPACE);
 
 		if(self->ctx->line_pos < self->ctx->line_len) {
-			error = eddy_write(self, VT100_SAVE_CURSOR_POS);
+			error = eddy_print(self, VT100_SAVE_CURSOR_POS);
 
 			if(!error) {
-				error = eddy_write(self, self->ctx->line_buffer + self->ctx->line_pos);
+				error = eddy_print(self, self->ctx->line_buffer + self->ctx->line_pos);
 			}
 
 			if(!error) {
-				error = eddy_write(self, " " VT100_RESTORE_CURSOR_POS);
+				error = eddy_print(self, " " VT100_RESTORE_CURSOR_POS);
 			}
 
 			memmove(self->ctx->line_buffer + self->ctx->line_pos - 1,
 				self->ctx->line_buffer + self->ctx->line_pos,
 				self->ctx->line_len - self->ctx->line_pos);
 		} else {
-			eddy_write(self, VT100_CLEAR_SCREEN_DOWN);
+			eddy_print(self, VT100_CLEAR_SCREEN_DOWN);
 		}
 
 		self->ctx->line_len--;
@@ -290,19 +374,25 @@ eddy_retv_t eddy_process_bs_key(eddy_p self)
 	return EDDY_RETV_OK;
 }
 
+/**
+ * @brief Proceed delete on line buffer.
+ * 
+ * @param self Pointer on library context.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_process_del_key(eddy_p self)
 {
 	eddy_retv_t error = EDDY_RETV_OK;
 
 	if(self->ctx->line_pos < self->ctx->line_len) {
-		error = eddy_write(self, VT100_SAVE_CURSOR_POS);
+		error = eddy_print(self, VT100_SAVE_CURSOR_POS);
 
 		if(!error) {
-			error = eddy_write(self, self->ctx->line_buffer + self->ctx->line_pos + 1);
+			error = eddy_print(self, self->ctx->line_buffer + self->ctx->line_pos + 1);
 		}
 
 		if(!error) {
-			error = eddy_write(self, " " VT100_RESTORE_CURSOR_POS);
+			error = eddy_print(self, " " VT100_RESTORE_CURSOR_POS);
 		}
 
 		memmove(self->ctx->line_buffer + self->ctx->line_pos,
@@ -315,52 +405,36 @@ eddy_retv_t eddy_process_del_key(eddy_p self)
 	return error;
 }
 
+/**
+ * @brief Proceed move cursor left on line buffer.
+ * 
+ * @param self Pointer on library context.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_process_cursor_left(eddy_p self)
 {
 	eddy_retv_t error = EDDY_RETV_OK;
-	//unsigned int cursorPos;
-	//char buffer[16];
 
 	if(self->ctx->line_pos > 0) {
-		//Determine the current position of the cursor
-		//cursorPos = session->promptLen + session->bufferPos;
-
-		//Moving left at the edge of the screen wraps to the previous line
-		//if((cursorPos % session->termWidth) == 0)
-		//{
-		//   osSprintf(buffer, VT100_MOVE_CURSOR_UP VT100_MOVE_CURSOR_RIGHT_N,
-		//      (uint_t) (session->termWidth - 1));
-		//	error = eddy_write(self, buffer);
-		//}
-		//else
-		//{
-			error = eddy_write(self, VT100_BACKSPACE);
-		//}
-
+		error = eddy_print(self, VT100_BACKSPACE);
 		self->ctx->line_pos--;
 	}
 
 	return error;
 }
 
+/**
+ * @brief Proceed move cursor right on line buffer.
+ * 
+ * @param self Pointer on library context
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_process_cursor_right(eddy_p self)
 {
 	eddy_retv_t error = EDDY_RETV_OK;
-	//unsigned int cursorPos;
 
 	if(self->ctx->line_pos < self->ctx->line_len) {
-		//Determine the current position of the cursor
-		//cursorPos = session->promptLen + session->bufferPos;
-
-		//Moving right at the edge of the screen wraps to the next line
-		//if((cursorPos % session->termWidth) == (session->termWidth - 1))
-		//{
-		//	error = eddy_write(self, "\r\n");
-		//}
-		//else
-		//{
-			error = eddy_write(self, VT100_MOVE_CURSOR_RIGHT);
-		//}
+		error = eddy_print(self, VT100_MOVE_CURSOR_RIGHT);
 
 		self->ctx->line_pos++;
 	}
@@ -368,6 +442,18 @@ eddy_retv_t eddy_process_cursor_right(eddy_p self)
 	return error;
 }
 
+/**
+ * @brief Function proceed hint searching.
+ * 
+ * The function is called when [TAB] is pressed. Passes
+ * the entered command through the set callback function.
+ * 
+ * @see eddy_s#set_check_hint_clbk
+ * 
+ * @param self Pointer on library context.
+ * @param cmd_line Command line buffer to process.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_process_check_hint(eddy_p self, char* cmd_line)
 {
 	eddy_retv_t error = EDDY_RETV_OK;
@@ -382,16 +468,26 @@ eddy_retv_t eddy_process_check_hint(eddy_p self, char* cmd_line)
 	self->ctx->line_len = self->ctx->line_pos;
 
 	if(!error) {
-		error = eddy_write(self, self->ctx->prompt);
+		error = eddy_print(self, self->ctx->prompt);
 	}
 
 	if(!error) {
-		error = eddy_write(self, self->ctx->line_buffer);
+		error = eddy_print(self, self->ctx->line_buffer);
 	}
 
 	return EDDY_RETV_OK;
 }
 
+/**
+ * @brief Function precesses command entered in terminal.
+ * 
+ * The function is called when [ENTER] is pressed. Passes
+ * the entered command through the set callback function.
+ * 
+ * @param self Pointer on library context.
+ * @param cmd_line Command line buffer to process.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_process_exec_cmd(eddy_p self, const char* cmd_line)
 {
 	eddy_retv_t error = EDDY_RETV_OK;
@@ -400,16 +496,16 @@ eddy_retv_t eddy_process_exec_cmd(eddy_p self, const char* cmd_line)
 		return EDDY_RETV_ERR;
 	}
 
-	error = eddy_write(self, "\r\n");
+	error = eddy_print(self, "\r\n");
 
 	if(!error) {
 		if(self->ctx->exec_cmd_clbk(cmd_line) != EDDY_RETV_OK) {
-			error = eddy_write(self, "ERROR\r\n");
+			error = eddy_print(self, "ERROR\r\n");
 		}
 	}
 
 	if(!error) {
-		error = eddy_write(self, self->ctx->prompt);
+		error = eddy_print(self, self->ctx->prompt);
 	}
 
 	self->ctx->line_len = 0;
@@ -419,7 +515,14 @@ eddy_retv_t eddy_process_exec_cmd(eddy_p self, const char* cmd_line)
 	return error;
 }
 
-eddy_retv_t eddy_write(eddy_p self, const char* buffer)
+/**
+ * @brief Function to print string in terminal.
+ * 
+ * @param self Pointer on library context.
+ * @param buffer Pointer on buffer to print.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
+eddy_retv_t eddy_print(eddy_p self, const char* buffer)
 {
 	if(self == EDDY_NULL || self->ctx->cli_print_clbk == EDDY_NULL) {
 		return EDDY_RETV_ERR;
@@ -430,6 +533,13 @@ eddy_retv_t eddy_write(eddy_p self, const char* buffer)
 	return EDDY_RETV_OK;
 }
 
+/**
+ * @brief Function to print single character in terminal.
+ * 
+ * @param self Pointer on library context.
+ * @param ch Character to print.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
 eddy_retv_t eddy_put(eddy_p self, char ch)
 {
 	char buffer[2];
