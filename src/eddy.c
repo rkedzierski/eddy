@@ -109,6 +109,7 @@ eddy_retv_t eddy_set_cli_print_impl(eddy_p self, eddy_cli_print_clbk cli_print_c
 eddy_retv_t eddy_set_log_print_impl(eddy_p self, eddy_log_print_clbk log_print_clbk);
 eddy_retv_t eddy_set_check_hint_impl(eddy_p self, eddy_check_hint_clbk check_hint_clbk);
 eddy_retv_t eddy_set_exec_cmd_impl(eddy_p self, eddy_exec_cmd_clbk exec_cmd_clbk);
+eddy_retv_t eddy_show_prompt_impl(eddy_p self);
 /**
  * @}
  */
@@ -145,6 +146,7 @@ eddy_retv_t init_eddy(eddy_p self)
 	self->set_log_print_clbk = eddy_set_log_print_impl;
 	self->set_check_hint_clbk = eddy_set_check_hint_impl;
 	self->set_exec_cmd_clbk = eddy_set_exec_cmd_impl;
+	self->show_prompt = eddy_show_prompt_impl;
 
 	self->ctx->keys_codes.bs_key = VT100_DEL_CODE; /* VT100_BS_CODE; */
 	self->ctx->keys_codes.del_key = VT100_BS_CODE;
@@ -155,7 +157,11 @@ eddy_retv_t init_eddy(eddy_p self)
 
 	self->ctx->prompt[0] = '>';
 	self->ctx->prompt[1] = '\0';
-	eddy_print(self, self->ctx->prompt);
+
+	self->ctx->cli_print_clbk = EDDY_NULL;
+	self->ctx->log_print_clbk = EDDY_NULL;
+	self->ctx->check_hint_clbk = EDDY_NULL;
+	self->ctx->exec_cmd_clbk = EDDY_NULL;
 
 	return EDDY_RETV_OK;
 }
@@ -289,6 +295,17 @@ eddy_retv_t eddy_put_char_impl(eddy_p self, char c)
 	}
 
 	return error;
+}
+
+/**
+ * @brief Fonction shows prompt
+ * 
+ * @param self Pointer on library context.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
+eddy_retv_t eddy_show_prompt_impl(eddy_p self)
+{
+	return eddy_print(self, self->ctx->prompt);
 }
 
 /**
