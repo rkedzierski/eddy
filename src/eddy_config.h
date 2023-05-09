@@ -18,7 +18,9 @@
  * @brief Size of line buffer
  * 
  */
+#ifndef EDDY_MAX_LINE_BUFF_LEN
 #define EDDY_MAX_LINE_BUFF_LEN	256
+#endif
 
 /**
  * @brief Declaration of size type
@@ -32,7 +34,7 @@ typedef size_t clima_size_t;
  * @param size in bytes
  * @return void* pointer to buffer
  */
-static inline void* eddy_malloc(clima_size_t size) {
+weak static inline void* eddy_malloc(clima_size_t size) {
 	return malloc(size);
 }
 
