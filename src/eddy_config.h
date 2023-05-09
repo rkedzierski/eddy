@@ -38,7 +38,7 @@ typedef size_t clima_size_t;
  * @param size in bytes
  * @return void* pointer to buffer
  */
-__WEAK static inline void* eddy_malloc(clima_size_t size) {
+__WEAK void* eddy_malloc(clima_size_t size) {
 	return malloc(size);
 }
 

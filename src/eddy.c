@@ -133,15 +133,12 @@ eddy_retv_t init_eddy(eddy_p self)
 	if(self == EDDY_NULL) {
 		return EDDY_RETV_ERR;
 	}
-#ifdef EDDY_STATIC_CONTEXT
-	self->ctx = self->static_ctx;
-#else
+
 	self->ctx = eddy_malloc(sizeof(self->ctx));
 
 	if(self->ctx == EDDY_NULL) {
 		return EDDY_RETV_ERR;
 	}
-#endif
 
     self->put_char = eddy_put_char_impl;
 	self->set_cli_print_clbk = eddy_set_cli_print_impl;
