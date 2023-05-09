@@ -14,6 +14,10 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+#ifndef   __WEAK
+  #define __WEAK                                 __attribute__((weak))
+#endif
+
 /**
  * @brief Size of line buffer
  * 
@@ -34,7 +38,7 @@ typedef size_t clima_size_t;
  * @param size in bytes
  * @return void* pointer to buffer
  */
-weak static inline void* eddy_malloc(clima_size_t size) {
+__WEAK static inline void* eddy_malloc(clima_size_t size) {
 	return malloc(size);
 }
 
