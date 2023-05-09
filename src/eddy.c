@@ -153,8 +153,8 @@ eddy_retv_t init_eddy(eddy_p self)
 	self->ctx->line_pos = 0;
 	self->ctx->esc_seq_len = 0;
 
-	ctx->prompt[0] = '>';
-	ctx->prompt[1] = '\0';
+	self-ctx->prompt[0] = '>';
+	self-ctx->prompt[1] = '\0';
 	eddy_print(self, self->ctx->prompt);
 
 	return EDDY_RETV_OK;
