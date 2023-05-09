@@ -288,7 +288,7 @@ eddy_retv_t eddy_put_char_impl(eddy_p self, char c)
 		self->ctx->esc_seq_len = 1;
 	} else if(c == '\t') {
 		error = eddy_process_check_hint(self, self->ctx->line_buffer);
-	} else if(c == '\n') {
+	} else if((c == '\n') || (c == '\r')) {
 		error = eddy_process_exec_cmd(self, self->ctx->line_buffer);
 	} else {
 		error = eddy_proces_insert_char(self, c);
