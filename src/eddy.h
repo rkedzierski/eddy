@@ -117,6 +117,10 @@ struct eddy_s {
      * @{ \name Library context.
     */
     eddy_ctx_p ctx; /**< Internal private context.*/
+
+#ifdef EDDY_STATIC_CONTEXT
+    eddy_ctx_t static_ctx;
+#endif
     /**
      * @}
      */
