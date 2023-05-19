@@ -11,6 +11,17 @@
 #ifndef __EDDY_H__
 #define __EDDY_H__
 
+#include <stdlib.h>
+#include <stddef.h>
+
+/**
+ * @brief Size of line buffer
+ * 
+ */
+#ifndef EDDY_MAX_LINE_BUFF_LEN
+#define EDDY_MAX_LINE_BUFF_LEN	256
+#endif
+
 /**
  * @brief Library return type
  */
@@ -18,6 +29,17 @@ typedef enum eddy_retv_e {
     EDDY_RETV_OK,   /**< returned if everyfing is OK */
     EDDY_RETV_ERR,  /**< returned if error */
 } eddy_retv_t;
+
+//typedef int eddy_size_t;
+
+#ifndef eddy_size_t
+/**
+ * @brief Default declaration of eddy size type[replaceable]
+ * 
+ */
+typedef size_t eddy_size_t;
+#endif
+
 
 /**
  * @brief Forward declarations
@@ -85,7 +107,6 @@ typedef eddy_retv_t (*eddy_show_prompt)(eddy_p self);
  * @}
  */
 
-
 /**
  * @brief Library initialization function
  * 
@@ -95,6 +116,27 @@ typedef eddy_retv_t (*eddy_show_prompt)(eddy_p self);
  * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
  */
 eddy_retv_t init_eddy(eddy_p self);
+
+/**
+ * @brief Eddy malloc function implementation. [replaceable]
+ * 
+ * Fuction have internal default implementation with statdard malloc call.
+ * Function implementation can be replaced because default function is defined with WEAK.
+ * 
+ * @param size Size of memory to allocation.
+ * @return void* Pointer to allocated memory.
+ */
+void* eddy_malloc(eddy_size_t size);
+
+/**
+ * @brief Eddy free function implementation. [replaceable]
+ * 
+ * Fuction have internal default implementation with statdard free call.
+ * Function implementation can be replaced because default function is defined with WEAK.
+ * 
+ * @param ptr 
+ */
+void eddy_free(void *ptr);
 
 /**
  * @brief Library context with API

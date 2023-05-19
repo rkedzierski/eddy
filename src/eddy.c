@@ -9,12 +9,15 @@
  * 
  */
 #include "eddy.h"
-#include "eddy_config.h"
+//#include "eddy_config.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 
+#ifndef   __WEAK
+  #define __WEAK                                 __attribute__((weak))
+#endif
 
 #define EDDY_NULL 0
 /**
@@ -572,4 +575,14 @@ eddy_retv_t eddy_put(eddy_p self, char ch)
 	self->ctx->cli_print_clbk(buffer);
 
 	return EDDY_RETV_OK;
+}
+
+/**
+ * @brief Default definition of memory allocation function.
+ * 
+ * @param size in bytes
+ * @return void* pointer to buffer
+ */
+__WEAK void* eddy_malloc(eddy_size_t size) {
+	return malloc(size);
 }
