@@ -94,13 +94,19 @@ typedef void (*eddy_log_print_clbk)(const char* string);
 typedef void (*eddy_check_hint_clbk)(char* cmd_line);
 
 /**
- * @{ \name Pointers on API functions.
+ * @brief Piotner on execute command function.
+ * @param cmd_line Pointer on line buffer to check.
  */
 typedef eddy_retv_t (*eddy_exec_cmd_clbk)(const char* cmd_line);
+
+/**
+ * @{ \name Pointers on API functions.
+ */
 typedef eddy_retv_t (*eddy_set_cli_print_clbk)(eddy_p self, eddy_cli_print_clbk cli_print_clbk);
 typedef eddy_retv_t (*eddy_set_log_print_clbk)(eddy_p self, eddy_log_print_clbk log_print_clbk);
 typedef eddy_retv_t (*eddy_set_check_hint_clbk)(eddy_p self, eddy_check_hint_clbk check_hint_clbk);
 typedef eddy_retv_t (*eddy_set_exec_cmd_clbk)(eddy_p self, eddy_exec_cmd_clbk exec_cmd_clbk);
+typedef eddy_retv_t (*eddy_set_prompt)(eddy_p self, char* prompt);
 typedef eddy_retv_t (*eddy_put_char)(eddy_p self, char c);
 typedef eddy_retv_t (*eddy_show_prompt)(eddy_p self);
 typedef eddy_retv_t (*eddy_destroy)(eddy_p self);
@@ -172,7 +178,8 @@ struct eddy_s {
     eddy_set_cli_print_clbk set_cli_print_clbk; /**< To set terminal printing callback function @see eddy_set_cli_print_impl */
     eddy_set_log_print_clbk set_log_print_clbk; /**< To set logs printing callback function @see eddy_set_log_print_impl */
     eddy_set_check_hint_clbk set_check_hint_clbk; /**< To set check and print hint for command callback @see eddy_set_check_hint_impl */
-    eddy_set_exec_cmd_clbk set_exec_cmd_clbk; /**<To set execute command callback function @see eddy_set_exec_cmd_impl */
+    eddy_set_exec_cmd_clbk set_exec_cmd_clbk; /**< To set execute command callback function @see eddy_set_exec_cmd_impl */
+    eddy_set_prompt set_prompt; /**< To set prompt function. @see eddy_set_prompt_impl */
     eddy_show_prompt show_prompt; /**< To show prompt first time. @see eddy_show_prompt_impl */
     eddy_destroy destroy; /**< Destroy instance of eddy. @see eddy_destroy_impl */
     /**

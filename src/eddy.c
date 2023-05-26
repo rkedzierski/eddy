@@ -112,6 +112,7 @@ eddy_retv_t eddy_set_cli_print_impl(eddy_p self, eddy_cli_print_clbk cli_print_c
 eddy_retv_t eddy_set_log_print_impl(eddy_p self, eddy_log_print_clbk log_print_clbk);
 eddy_retv_t eddy_set_check_hint_impl(eddy_p self, eddy_check_hint_clbk check_hint_clbk);
 eddy_retv_t eddy_set_exec_cmd_impl(eddy_p self, eddy_exec_cmd_clbk exec_cmd_clbk);
+eddy_retv_t eddy_set_prompt_impl(eddy_p self, char* prompt);
 eddy_retv_t eddy_show_prompt_impl(eddy_p self);
 eddy_retv_t eddy_destroy_impl(eddy_p self);
 /**
@@ -150,6 +151,7 @@ eddy_retv_t init_eddy(eddy_p self)
 	self->set_log_print_clbk = eddy_set_log_print_impl;
 	self->set_check_hint_clbk = eddy_set_check_hint_impl;
 	self->set_exec_cmd_clbk = eddy_set_exec_cmd_impl;
+	self->set_prompt = eddy_set_prompt_impl;
 	self->show_prompt = eddy_show_prompt_impl;
 	self->destroy = eddy_destroy_impl;
 
@@ -243,6 +245,22 @@ eddy_retv_t eddy_set_exec_cmd_impl(eddy_p self, eddy_exec_cmd_clbk exec_cmd_clbk
 	self->ctx->exec_cmd_clbk = exec_cmd_clbk;
 
 	return EDDY_RETV_OK;
+}
+
+/**
+ * @brief Implementation of api set_prompt function.
+ * 
+ * @param self Pointer on library context.
+ * @param prompt Pointer on prompt string.
+ * @return eddy_retv_t Error code: EDDY_RETV_OK if succes or EDDY_RETV_ERR if error.
+ */
+eddy_retv_t eddy_set_prompt_impl(eddy_p self, char* prompt)
+{
+	if(self == EDDY_NULL || prompt == EDDY_NULL) {
+		return EDDY_RETV_ERR;
+	}
+
+	strncpy(self->ctx->prompt, prompt, EDDY_MAX_PROMPT_LEN);
 }
 
 /**
