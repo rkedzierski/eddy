@@ -44,5 +44,9 @@ void test_init_eddy_ok()
 	result = init_eddy(&eddy);
 
 	TEST_ASSERT_EQUAL(result, EDDY_RETV_OK);
+
+	result = eddy.destroy(&eddy);
+
+	TEST_ASSERT_EQUAL(result, EDDY_RETV_OK);
 }
 

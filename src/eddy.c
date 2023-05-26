@@ -113,6 +113,7 @@ eddy_retv_t eddy_set_log_print_impl(eddy_p self, eddy_log_print_clbk log_print_c
 eddy_retv_t eddy_set_check_hint_impl(eddy_p self, eddy_check_hint_clbk check_hint_clbk);
 eddy_retv_t eddy_set_exec_cmd_impl(eddy_p self, eddy_exec_cmd_clbk exec_cmd_clbk);
 eddy_retv_t eddy_show_prompt_impl(eddy_p self);
+eddy_retv_t eddy_destroy_impl(eddy_p self);
 /**
  * @}
  */
@@ -150,6 +151,7 @@ eddy_retv_t init_eddy(eddy_p self)
 	self->set_check_hint_clbk = eddy_set_check_hint_impl;
 	self->set_exec_cmd_clbk = eddy_set_exec_cmd_impl;
 	self->show_prompt = eddy_show_prompt_impl;
+	self->destroy = eddy_destroy_impl;
 
 	self->ctx->keys_codes.bs_key = VT100_DEL_CODE; /* VT100_BS_CODE; */
 	self->ctx->keys_codes.del_key = VT100_BS_CODE;
@@ -309,6 +311,25 @@ eddy_retv_t eddy_put_char_impl(eddy_p self, char c)
 eddy_retv_t eddy_show_prompt_impl(eddy_p self)
 {
 	return eddy_print(self, self->ctx->prompt);
+}
+
+eddy_retv_t eddy_destroy_impl(eddy_p self)
+{
+	if(self == EDDY_NULL) {
+		return EDDY_RETV_ERR;
+	}
+
+	eddy_free(self->ctx);
+
+    self->put_char = EDDY_NULL;
+	self->set_cli_print_clbk = EDDY_NULL;
+	self->set_log_print_clbk = EDDY_NULL;
+	self->set_check_hint_clbk = EDDY_NULL;
+	self->set_exec_cmd_clbk = EDDY_NULL;
+	self->show_prompt = EDDY_NULL;
+	self->destroy = EDDY_NULL;
+
+	return EDDY_RETV_OK;
 }
 
 /**
@@ -585,4 +606,14 @@ eddy_retv_t eddy_put(eddy_p self, char ch)
  */
 __WEAK void* eddy_malloc(eddy_size_t size) {
 	return malloc(size);
+}
+
+/**
+ * @brief Default definition of memory allocation function.
+ * 
+ * @param size in bytes
+ * @return void* pointer to buffer
+ */
+__WEAK void eddy_free(void* ptr) {
+	return free(ptr);
 }

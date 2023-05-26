@@ -103,6 +103,7 @@ typedef eddy_retv_t (*eddy_set_check_hint_clbk)(eddy_p self, eddy_check_hint_clb
 typedef eddy_retv_t (*eddy_set_exec_cmd_clbk)(eddy_p self, eddy_exec_cmd_clbk exec_cmd_clbk);
 typedef eddy_retv_t (*eddy_put_char)(eddy_p self, char c);
 typedef eddy_retv_t (*eddy_show_prompt)(eddy_p self);
+typedef eddy_retv_t (*eddy_destroy)(eddy_p self);
 /**
  * @}
  */
@@ -173,6 +174,7 @@ struct eddy_s {
     eddy_set_check_hint_clbk set_check_hint_clbk; /**< To set check and print hint for command callback @see eddy_set_check_hint_impl */
     eddy_set_exec_cmd_clbk set_exec_cmd_clbk; /**<To set execute command callback function @see eddy_set_exec_cmd_impl */
     eddy_show_prompt show_prompt; /**< To show prompt first time. @see eddy_show_prompt_impl */
+    eddy_destroy destroy; /**< Destroy instance of eddy. @see eddy_destroy_impl */
     /**
      * @}
      */
