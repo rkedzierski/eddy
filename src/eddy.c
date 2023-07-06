@@ -140,7 +140,7 @@ eddy_retv_t init_eddy(eddy_p self)
 		return EDDY_RETV_ERR;
 	}
 
-	self->ctx = eddy_malloc(sizeof(self->ctx));
+	self->ctx = eddy_malloc(sizeof(*self->ctx));
 
 	if(self->ctx == EDDY_NULL) {
 		return EDDY_RETV_ERR;

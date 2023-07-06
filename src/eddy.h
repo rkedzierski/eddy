@@ -141,7 +141,7 @@ void* eddy_malloc(eddy_size_t size);
  * Fuction have internal default implementation with statdard free call.
  * Function implementation can be replaced because default function is defined with WEAK.
  * 
- * @param ptr 
+ * @param ptr Pointer on memory block to free.
  */
 void eddy_free(void *ptr);
 
