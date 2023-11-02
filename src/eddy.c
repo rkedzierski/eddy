@@ -633,5 +633,5 @@ __WEAK void* eddy_malloc(eddy_size_t size) {
  * @return void* pointer to buffer
  */
 __WEAK void eddy_free(void* ptr) {
-	return free(ptr);
+	free(ptr);
 }
