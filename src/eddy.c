@@ -261,6 +261,8 @@ eddy_retv_t eddy_set_prompt_impl(eddy_p self, char* prompt)
 	}
 
 	strncpy(self->ctx->prompt, prompt, EDDY_MAX_PROMPT_LEN);
+
+	return EDDY_RETV_OK;
 }
 
 /**
