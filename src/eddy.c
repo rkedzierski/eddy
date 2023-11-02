@@ -303,7 +303,7 @@ eddy_retv_t eddy_put_char_impl(eddy_p self, char c)
 
 			} else {
 			//Unknown escape sequence
-				printf("DEBUG: unknown esc seq: %s\n", self->ctx->esc_seq + 1);
+				//printf("DEBUG: unknown esc seq: %s\n", self->ctx->esc_seq + 1);
 				eddy_print(self, self->ctx->esc_seq);
 			}
 			self->ctx->esc_seq_len = 0;
