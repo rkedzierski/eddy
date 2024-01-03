@@ -13,7 +13,6 @@
 
 #include <string.h>
 #include <stdio.h>
-#include <ctype.h>
 
 #ifndef   __WEAK
   #define __WEAK                                 __attribute__((weak))
@@ -290,7 +289,7 @@ eddy_retv_t eddy_put_char_impl(eddy_p self, char c)
 			self->ctx->esc_seq[self->ctx->esc_seq_len] = '\0';
 		}
 
-		if(isalpha(c) || c == '~') {	/* seq end */
+		if(((c>='A') && (c<='Z')) || ((c>='a') && (c<='z')) || c == '~') {	/* seq end */
 			if(!strcmp(self->ctx->esc_seq, VT100_DELETE)) {
 			error = eddy_process_del_key(self);
 			} else if(!strcmp(self->ctx->esc_seq, VT100_MOVE_CURSOR_LEFT)) {
